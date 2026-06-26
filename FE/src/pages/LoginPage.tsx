@@ -1,15 +1,8 @@
 import { useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { Navigate } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
+import "../App.css"
 
-async function fakeLogin(email:string, password:string) {
-    // Pretend to call a server
-    await new Promise((resolve) => setTimeout(resolve,1000))
-    if (email === 'test@test.com' && password === '123') {
-        return{token: 'fake-jwt-token-123'}
-    }
-    throw new Error('Invalid email or password')
-}
 
 function LoginPage(){
     // React hooks
@@ -17,10 +10,9 @@ function LoginPage(){
     const [password, setPassword] = useState("")
     const [error, setError] = useState("")
     const [loading, setLoading] = useState(false)
-    const navigate = useNavigate() // for redirecting upon successful login
-    const {login} = useAuth() // Connects to the context
+    const {login, session} = useAuth() // Connects to the context
 
-    
+    if (session) return <Navigate to="/" replace /> // If we're logged in, leave the login page.
 
     return (
         <form
@@ -28,10 +20,8 @@ function LoginPage(){
                 e.preventDefault()
                 try {
                     setLoading(true)
-                    const result = await fakeLogin(email, password)
-                    login(result.token) // Stores it in context + local storage
+                    await login(email, password)
                     setError("") // Clear any old error on success
-                    navigate("/")
                 } catch (err) {
                     setError('oops login failed: ')
                 } finally {

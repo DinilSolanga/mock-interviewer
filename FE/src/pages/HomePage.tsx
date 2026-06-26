@@ -1,23 +1,27 @@
 import { useState } from 'react'
-import './App.css'
 import { useAuth } from '../context/AuthContext'
 
 function HomePage() {
-  const [count, setCount] = useState(0)
-  const {token, logout} = useAuth()
+  const {session, logout} = useAuth()
+  const [result, setResult] = useState("")
+
+  async function callBackend(){
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/me`, {
+      headers: {
+        Authorization: `Bearer ${session?.access_token}`,
+      },
+    })
+    const data = await res.json()
+    setResult(JSON.stringify(data))
+  }
 
   return (
     <>
       <section id="center">
         
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-        {token
+        <button onClick={callBackend}>Call backend /me</button>
+        {result && <p>{result}</p>}
+        {session
           ? <button onClick={logout}>Log out</button>
           : <p>You are not logged in</p>
         }
