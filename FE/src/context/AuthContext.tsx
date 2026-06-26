@@ -6,6 +6,7 @@ import { supabase } from "../lib/supabase";
 type AuthContextType = {
     session: Session | null
     loading: boolean
+    register: (email: string, password: string) => Promise<void>
     login: (email: string, password: string) => Promise<void> // Returns a promise because login and logout are async
     logout: () => Promise<void> // void means theres no return value, but you must wait for the effect of the function
 }
@@ -26,7 +27,7 @@ export function AuthProvider({children}: {children: ReactNode}) {
             setLoading(false)
         })
 
-        // 2. Subscription: listens for and fires on login, logout, AND automatic token refresh(supabase behaviour)
+        // 2. Subscrip tion: listens for and fires on login, logout, AND automatic token refresh(supabase behaviour)
         //
         const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
             setSession(session)
@@ -35,6 +36,11 @@ export function AuthProvider({children}: {children: ReactNode}) {
         // 3. Cleanup: stop subscription if this component ever unmounts
         return () => listener.subscription.unsubscribe()
     }, [] ) // [] means run once upon each load
+
+    async function register(email: string, password: string) {
+        const {error} = await supabase.auth.signUp({email, password})
+        if (error) throw error
+    }
 
     async function login(email: string, password: string) {
         const { error } = await supabase.auth.signInWithPassword({ email, password}) // the actual sign in
@@ -46,7 +52,7 @@ export function AuthProvider({children}: {children: ReactNode}) {
     }
 
     return (
-        <AuthContext.Provider value={{session, loading, login, logout}}>
+        <AuthContext.Provider value={{session, loading, register, login, logout}}>
             {children}
         </AuthContext.Provider>
     )

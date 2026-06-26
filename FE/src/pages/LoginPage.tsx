@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Navigate } from "react-router-dom"
+import { Link, Navigate } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
 import "../App.css"
 
@@ -51,6 +51,7 @@ function LoginPage(){
              />
 
             <button type="submit" disabled={loading}>{loading ? "logging in" : "Log in"}</button>
+            <p>Dont have an account? <Link to={'/register'}>Create an account</Link></p>
         </form>
     )
 }
