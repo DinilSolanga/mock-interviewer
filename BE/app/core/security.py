@@ -1,14 +1,12 @@
 """Supabase JWT verification used as a FastAPI dependency."""
-import os
 import jwt
 from jwt import PyJWKClient
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from dotenv import load_dotenv
+from app.core.config import settings
 
-load_dotenv() # Reads BE/.env environment variables
 
-SUPABASE_URL = os.environ["SUPABASE_URL"]
+SUPABASE_URL = settings.supabase_url
 JWKS_URL = f"{SUPABASE_URL}/auth/v1/.well-known/jwks.json" # Address of Supabase's JWKS(JSON Web Key Set) endpoint
 ISSUER = f"{SUPABASE_URL}/auth/v1"
 AUDIENCE = "authenticated" # What kind of users/audience has access
