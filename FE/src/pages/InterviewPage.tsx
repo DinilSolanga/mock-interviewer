@@ -1,12 +1,14 @@
 import { useRef, useState} from 'react'
 import { useAuth } from '../context/AuthContext'
+import { useParams } from 'react-router-dom' // Reads the URL parameters
 
 function InterviewPage() {
     const [isRecording, setIsRecording] = useState(false) // UI: which button to show
     const [audioUrl, setAudioUrl] = useState("") // UI: playback source
-    const {session} = useAuth()
     const [transcript, setTranscript] = useState("") // Transcript of the answer
     const [feedback, setFeedback] = useState<any>(null)
+    const {session} = useAuth()
+    const {sessionId} = useParams()
 
     const mediaRecorderRef = useRef<MediaRecorder | null>(null) // The recorder (not shown)
     const chunksRef = useRef<Blob[]>([]) // The collected audio pieces
@@ -50,6 +52,7 @@ function InterviewPage() {
         const formData = new FormData()
         formData.append('file', audioBlobRef.current, 'answer.webm') // Stores the audio file
         formData.append('question', question) // Stores the question
+        formData.append('session_id', sessionId ?? '')
 
         // The actual sending of the audio to the backend
         const res = await fetch(`${import.meta.env.VITE_API_URL}/answers/audio`, {

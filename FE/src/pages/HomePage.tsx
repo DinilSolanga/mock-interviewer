@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
+import { useNavigate } from 'react-router-dom'
 
 function HomePage() {
   const {session, logout} = useAuth() // The auth session- login state
   const [interviewSessions, setInterviewSessions] = useState<any[]>([]) // syntax is for type hinting that the value is an array: <> after useState is used for defining type. any means it can be anything, [] means its an array
   const [result, setResult] = useState("")
+  const navigate = useNavigate()
 
   // Function that loads the sessions once AFTER the component renders. Needs to be wrapped in useEffect because otherwise, it would re-render the page when it runs, which would call the function again, creating an infinite loop
   useEffect(() => {
@@ -26,13 +28,15 @@ function HomePage() {
 
   // Create a new session
   async function createSession(type: string) {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('sessions')
       .insert({session_type: type, user_id: session?.user.id})
+      .select() // Return the created row/rows
+      .single() // Since we only made one row, return one object(so we can do data.id instead of data[0].id)
     if (error){
       console.error(error); return
     }
-    loadSessions() // Refresh the list
+    navigate(`/interview/${data.id}`) // Navigate to that sessions interview page
   }
 
   async function callBackend(){
