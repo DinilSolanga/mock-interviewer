@@ -4,6 +4,7 @@ import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage.tsx'
 import ProtectedRoute from './components/ProtectedRoute.tsx'
 import InterviewPage from './pages/InterviewPage.tsx'
+import ReviewPage from './pages/ReviewPage.tsx'
 
 function App() {
   return (
@@ -21,6 +22,11 @@ function App() {
       <Route path='/interview/:sessionId' element={
         <ProtectedRoute>
           <InterviewPage/>
+        </ProtectedRoute>
+      } />
+      <Route path='/session/:sessionId' element={
+        <ProtectedRoute>
+          <ReviewPage/>
         </ProtectedRoute>
       } />
     </Routes>

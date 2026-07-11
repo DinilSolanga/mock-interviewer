@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
 import { useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 
 function HomePage() {
   const {session, logout} = useAuth() // The auth session- login state
@@ -57,7 +58,11 @@ function HomePage() {
         <ul>
           
           {interviewSessions.map((s) =>( // Turns every session object into a <li> (list)
-            <li key={s.id}>{s.session_type} - {new Date(s.created_at).toLocaleString()}</li> // s.id is the row id. tolocalestring converts the date into a readable format
+            <li key={s.id}>
+              <Link to={`/session/${s.id}`}>
+                {s.session_type} - {new Date(s.created_at).toLocaleString()}
+              </Link>
+            </li> // s.id is the row id. tolocalestring converts the date into a readable format
           )) // {} lets u write javascript in the html blocks
           }
         </ul>
