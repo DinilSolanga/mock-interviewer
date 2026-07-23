@@ -2,6 +2,7 @@ from fastapi import FastAPI, Depends, UploadFile, File
 from app.core.security import verify_token # Imports the JWT verification dependenct
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import answers
+from app.routers import questions
 
 app = FastAPI()
 
@@ -13,6 +14,7 @@ app.add_middleware(
 )
 
 app.include_router(answers.router)
+app.include_router(questions.router)
 
 @app.get("/")
 def read_root():

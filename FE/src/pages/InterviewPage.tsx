@@ -1,19 +1,37 @@
-import { useRef, useState} from 'react'
+import { useEffect, useRef, useState} from 'react'
 import { useAuth } from '../context/AuthContext'
-import { useParams } from 'react-router-dom' // Reads the URL parameters
+import { useParams, Link } from 'react-router-dom' // Reads the URL parameters
+import { supabase } from '../lib/supabase'
 
 function InterviewPage() {
     const [isRecording, setIsRecording] = useState(false) // UI: which button to show
     const [audioUrl, setAudioUrl] = useState("") // UI: playback source
-    const [transcript, setTranscript] = useState("") // Transcript of the answer
-    const [feedback, setFeedback] = useState<any>(null)
+    const [questions, setQuestions] = useState<any[]>([])
+    const [currentIndex, setCurrentIndex] = useState(0)
+    const [done, setDone] = useState(false)
     const {session} = useAuth()
     const {sessionId} = useParams()
 
     const mediaRecorderRef = useRef<MediaRecorder | null>(null) // The recorder (not shown)
     const chunksRef = useRef<Blob[]>([]) // The collected audio pieces
     const audioBlobRef = useRef<Blob | null>(null)
-    const question = "Tell me about yourself"
+
+    useEffect(() => {
+        loadSession()
+    }, [])
+    
+    async function loadSession() {
+        // 1. Find what mode the session is: search the DB(authoritative source)
+        const { data: sessionRow} = await supabase
+            .from('sessions')
+            .select('session_type')
+            .eq('id', sessionId)
+            .single()
+
+        // 2. Get the ordered question set for that mode
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/questions/set?mode=${sessionRow.session_type}`)
+        setQuestions(await res.json())
+    }
 
     async function startRecording() {
         // 1. Ask for mic access - triggers the browser permission prompt
@@ -47,11 +65,20 @@ function InterviewPage() {
     }
 
     async function submitAnswer() {
-        if (!audioBlobRef.current) return // If the value in the blob is null, do nothing
+        const blob = audioBlobRef.current
+        if (!blob) return // If the value in the blob is null, do nothing
+        const questionText = questions[currentIndex].text
+        const questionType = questions[currentIndex].type
 
+        uploadAnswer(blob, questionText, questionType)  // Fire the answer, dont wait for response
+        nextQuestion() // Move on immediately      
+    }
+
+    async function uploadAnswer(blob : Blob, questionText: string, questionType: string) {
         const formData = new FormData()
-        formData.append('file', audioBlobRef.current, 'answer.webm') // Stores the audio file
-        formData.append('question', question) // Stores the question
+        formData.append('file', blob, 'answer.webm') // Stores the audio file
+        formData.append('question', questionText) // Stores the question
+        formData.append('question_type', questionType)
         formData.append('session_id', sessionId ?? '')
 
         // The actual sending of the audio to the backend
@@ -62,51 +89,48 @@ function InterviewPage() {
             },
             body: formData,
         })
-        const data = await res.json() // Waits for the response
-        setTranscript(data.transcript) // Writes the transcript to the transcript state
-        setFeedback(data.feedback) // Writes the feedback to the feedback state
-        console.log('backend received', data)
+        if (!res.ok) console.error('upload failed', await res.text())
     }
+
+    function nextQuestion() {
+            if (currentIndex + 1 < questions.length){
+                setCurrentIndex(currentIndex+1)
+                // Reset everything for the fresh question:
+                setAudioUrl("")
+                audioBlobRef.current = null
+            }
+            else {
+                setDone(true) // Done with the questions
+            }
+        }
 
     return (
         <>
-            <h1>Interview</h1>
-            <p>{question}</p>
+        {done ? (
+            <div>
+                <h2>Session complete! 🎉</h2>
+                <Link to={`/session/${sessionId}`}>Review your answers</Link>
+            </div>
+        ) : (
+            <>
+                <p>Question {currentIndex + 1} of {questions.length}</p>
+                <p>{questions[currentIndex]?.text}</p>
 
-            {isRecording
-            ? <button onClick={stopRecording}>Stop</button>
-            : <button onClick={startRecording}>Record</button>
-            }
-
-            { // Transcript of answer
-                transcript && <p><strong>Transcript: </strong> {transcript}</p>
-            }
-            <ul>
-                { // Feedback
-                    feedback && (
-                        <div>
-                            <p><strong>Overall:</strong> {feedback.overall_score}/10</p>
-                            <ul>
-                                <li>Situation ({feedback.situation.score}/10): {feedback.situation.feedback}</li>
-                                <li>Task ({feedback.task.score}/10): {feedback.task.feedback}</li>
-                                <li>Action ({feedback.action.score}/10): {feedback.action.feedback}</li>
-                                <li>Result ({feedback.result.score}/10): {feedback.result.feedback}</li>
-                                <li>Clarity ({feedback.clarity.score}/10): {feedback.clarity.feedback}</li>
-                            </ul>
-                        </div>
-                    )   
+                {isRecording
+                ? <button onClick={stopRecording}>Stop</button>
+                : <button onClick={startRecording}>Record</button>
                 }
-            </ul>
 
-            { // built-in browser audio player
-            audioUrl && <audio key={audioUrl} src={audioUrl} controls/> 
-            }
+                { // built-in browser audio player
+                audioUrl && <audio key={audioUrl} src={audioUrl} controls/> 
+                }
 
-            { // Submit button
-                audioUrl && <button onClick={submitAnswer}>Submit answer</button>
-            }
-        </>
+                { // Submit button
+                    audioUrl && <button onClick={submitAnswer}>Submit answer</button>
+                }
+            </>
+        )}    
+        </> 
     )
 }
-
 export default InterviewPage

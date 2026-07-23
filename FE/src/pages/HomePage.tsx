@@ -54,7 +54,8 @@ function HomePage() {
     <>
       <section id="center">
         
-        <button onClick={() => createSession('behavioural')}>New Behavioural Session</button>
+        <button onClick={() => createSession('full')}>Start Full Session</button>
+        <button onClick={() => createSession('single')}>Single Question</button>
         <ul>
           
           {interviewSessions.map((s) =>( // Turns every session object into a <li> (list)
