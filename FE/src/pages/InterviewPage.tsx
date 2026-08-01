@@ -27,6 +27,18 @@ function InterviewPage() {
         loadSession()
     }, [])
 
+    // Warn before leaving/refreshing while a session is unfinished, so answers
+    // aren't lost by an accidental close. Finished sessions (done) are safe to leave.
+    useEffect(() => {
+        if (done) return
+        function handleBeforeUnload(e: BeforeUnloadEvent) {
+            e.preventDefault()
+            e.returnValue = "" // some browsers require this to show the native prompt
+        }
+        window.addEventListener('beforeunload', handleBeforeUnload)
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+    }, [done])
+
     async function loadSession() {
         try {
             // 1. Find what mode the session is: search the DB (authoritative source)
