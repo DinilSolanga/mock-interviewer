@@ -42,11 +42,12 @@ function InterviewPage() {
     async function loadSession() {
         try {
             // 1. Find what mode the session is: search the DB (authoritative source)
-            const { data: sessionRow } = await supabase
+            const { data: sessionRow, error } = await supabase
                 .from('sessions')
                 .select('session_type')
                 .eq('id', sessionId)
                 .single()
+            if (error || !sessionRow) throw new Error("Couldn't load session")
 
             // 2. Get the ordered question set for that mode
             const res = await fetch(`${import.meta.env.VITE_API_URL}/questions/set?mode=${sessionRow.session_type}`)
