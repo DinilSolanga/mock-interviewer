@@ -8,7 +8,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "https://interview-buddy-eight-teal.vercel.app"], # The frontend origins
+    allow_origins=["http://localhost:5173", "https://interview-buddy-eight-teal.vercel.app",], # The frontend origins
     allow_methods=["*"],
     allow_headers=["*"],
 )
