@@ -5,7 +5,7 @@ import RegisterPage from './pages/RegisterPage.tsx'
 import ProtectedRoute from './components/ProtectedRoute.tsx'
 import InterviewPage from './pages/InterviewPage.tsx'
 import ReviewPage from './pages/ReviewPage.tsx'
-import { Analytics } from "@vercel/analytics/next"
+import { Analytics } from "@vercel/analytics/react"
 
 
 function App() {
