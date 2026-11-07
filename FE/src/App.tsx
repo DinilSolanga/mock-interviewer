@@ -5,31 +5,36 @@ import RegisterPage from './pages/RegisterPage.tsx'
 import ProtectedRoute from './components/ProtectedRoute.tsx'
 import InterviewPage from './pages/InterviewPage.tsx'
 import ReviewPage from './pages/ReviewPage.tsx'
+import { Analytics } from "@vercel/analytics/next"
+
 
 function App() {
   return (
-    <Routes>
-      
-      <Route 
-        path="/" 
-        element={
-            <ProtectedRoute>
-                <HomePage />
-            </ProtectedRoute> // Guards the homepage route
+    <>
+      <Routes>
+        
+        <Route 
+          path="/" 
+          element={
+              <ProtectedRoute>
+                  <HomePage />
+              </ProtectedRoute> // Guards the homepage route
+          } />
+        <Route path='/register' element={<RegisterPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path='/interview/:sessionId' element={
+          <ProtectedRoute>
+            <InterviewPage/>
+          </ProtectedRoute>
         } />
-      <Route path='/register' element={<RegisterPage />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path='/interview/:sessionId' element={
-        <ProtectedRoute>
-          <InterviewPage/>
-        </ProtectedRoute>
-      } />
-      <Route path='/session/:sessionId' element={
-        <ProtectedRoute>
-          <ReviewPage/>
-        </ProtectedRoute>
-      } />
-    </Routes>
+        <Route path='/session/:sessionId' element={
+          <ProtectedRoute>
+            <ReviewPage/>
+          </ProtectedRoute>
+        } />
+      </Routes>
+      <Analytics />
+    </>
   )
 }
 
